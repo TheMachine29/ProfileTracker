@@ -1,0 +1,81 @@
+name: Notify Profile View Only on New Visits (Persistent)
+
+on:
+  schedule:
+    - cron: '0 2,14 * * *'
+  workflow_dispatch:  # Permite ejecución manual
+
+jobs:
+  send_notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Load Previous Views
+        id: load_views
+        run: |
+          if [ -f views.txt ]; then
+            PREV_VIEWS=$(cat views.txt)
+          else
+            PREV_VIEWS=0
+          fi
+          echo "PREV_VIEWS=$PREV_VIEWS" >> $GITHUB_ENV
+
+      - name: Check Current Profile Views
+        id: check_views
+        run: |
+          CURRENT_VIEWS=$(curl -s "https://komarev.com/ghpvc/?username='tu-usuario'" | grep -oE '[0-9]+' | tail -1)
+          if [[ -z "$CURRENT_VIEWS" ]]; then
+            echo "Error: No se pudo obtener el número de visitas."
+            exit 1
+          fi
+          echo "CURRENT_VIEWS=$CURRENT_VIEWS" >> $GITHUB_ENV
+
+      - name: Debugging Values
+        run: |
+          echo "Prev Views: $PREV_VIEWS"
+          echo "Current Views: $CURRENT_VIEWS"
+
+      - name: Compare and Notify
+        run: |
+          VISITS_DIFF=$((CURRENT_VIEWS - PREV_VIEWS))
+
+          if [[ "$CURRENT_VIEWS" =~ ^[0-9]+$ && "$PREV_VIEWS" =~ ^[0-9]+$ ]]; then
+            if [ "$CURRENT_VIEWS" -gt "$PREV_VIEWS" ]; then
+              echo "Nueva visita detectada. Enviando notificación..."
+
+              # Mensajes personalizados según el crecimiento de visitas
+              if [ "$VISITS_DIFF" -eq 1 ]; then
+                MESSAGE="👀 ¡Tienes 1 nueva visita, 📊 Total: $CURRENT_VIEWS"
+              elif [ "$VISITS_DIFF" -gt 1 ] && [ "$VISITS_DIFF" -le 5 ]; then
+                MESSAGE="🚀 ¡Tu perfil ha recibido $VISITS_DIFF nuevas visitas, 📊 Total: $CURRENT_VIEWS"
+              else
+                MESSAGE="🔥 ¡BOOM! Tu perfil explotó con $VISITS_DIFF visitas nuevas, 📊 Total: $CURRENT_VIEWS"
+              fi
+
+              curl -v -H "Title: 🚀 Nuevo visitante en el perfil!" \
+                   -H "Tags: profile,visitor" \
+                   -d "$MESSAGE" \
+                   ntfy.sh/'tu-topic'
+              echo "$CURRENT_VIEWS" > views.txt
+            else
+              echo "No hay nuevas visitas. No se enviará notificación."
+            fi
+          else
+            echo "Error: Valores no numéricos detectados en CURRENT_VIEWS o PREV_VIEWS."
+            exit 1
+          fi
+
+      - name: Commit Updated Views
+        run: |
+          if [[ $(git status --porcelain) ]]; then
+            git config --local user.name "github-actions"
+            git config --local user.email "actions@github.com"
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            git add views.txt
+            git commit -m "Update profile views: $CURRENT_VIEWS"
+            git push
+          else
+            echo "No changes to commit."
+          fi
