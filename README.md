@@ -129,7 +129,7 @@ Para que las visitas a tu perfil de GitHub se registren correctamente, debes inc
   <img src="https://komarev.com/ghpvc/?username='tu-usuario'&label=Profile%20views&color=0e75b6&style=flat" alt="'tu-usuario'" /> 
 </p>
 ```
-Reemplaza 'tu-usuario' con tu nombre de usuario de GitHub. Este código mostrará el número de visitas a tu perfil y actualizará el contador cada vez que alguien visite tu perfil.
+Reemplaza `'tu-usuario'` con tu nombre de usuario de GitHub. Este código mostrará el número de visitas a tu perfil y actualizará el contador cada vez que alguien visite tu perfil.
 
 ## 🔥 Uso Manual
 Si deseas ejecutar la acción de forma manual:
