@@ -148,3 +148,9 @@ Puedes recibirlas en:
 - Este workflow verifica las visitas cada 12 horas.
 - Se almacena el número de visitas en `views.txt` para evitar notificaciones repetidas.
 - Si el número de visitas no cambia, no se enviará ninguna notificación.
+
+## 📜 Licencia
+Este proyecto es de código abierto bajo la licencia **MIT**. Puedes usarlo, modificarlo y compartirlo libremente.
+
+## 🤝 Contribuciones
+Si quieres mejorar el código o agregar nuevas funciones, ¡las contribuciones son bienvenidas! Puedes hacer un **fork**, modificarlo y abrir un **pull request**.
